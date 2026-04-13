@@ -1,8 +1,8 @@
 ## Summary
-- 
+- Describe what this PR does and why.
 
 ## Changes
-- 
+- List the key changes made.
 
 ## Test Plan
 - [ ] `npm test`
@@ -16,4 +16,4 @@
 - [ ] Screenshots/logs added if useful
 
 ## Notes
-- 
+- Add any additional context, caveats, or follow-up work here.
