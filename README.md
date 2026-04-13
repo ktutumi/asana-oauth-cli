@@ -1,5 +1,8 @@
 # asana-oauth-cli
 
+[![CI](https://github.com/ktutumi/asana-oauth-cli/actions/workflows/ci.yml/badge.svg)](https://github.com/ktutumi/asana-oauth-cli/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/ktutumi/asana-oauth-cli)](https://github.com/ktutumi/asana-oauth-cli/releases/tag/v0.1.0)
+
 個人利用向けの軽量 Asana OAuth CLI です。
 
 対応コマンド:
