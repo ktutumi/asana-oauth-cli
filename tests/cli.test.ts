@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { runCli } from '../src/cli.js';
@@ -9,6 +10,23 @@ afterEach(() => {
 });
 
 describe('cli', () => {
+  it('publishes only asn as the global bin', () => {
+    const packagePath = fileURLToPath(new URL('../package.json', import.meta.url));
+    const pkg = JSON.parse(readFileSync(packagePath, 'utf8')) as {
+      bin: Record<string, string>;
+    };
+
+    expect(pkg.bin).toEqual({ asn: 'dist/src/bin.js' });
+  });
+
+  it('declares asn as the CLI name', () => {
+    const cliPath = fileURLToPath(new URL('../src/cli.ts', import.meta.url));
+    const source = readFileSync(cliPath, 'utf8');
+
+    expect(source).toContain("program.name('asn')");
+    expect(source).toContain("['node', 'asn', ...argv]");
+  });
+
   it('prints the authorization URL for auth url', async () => {
     const stdout: string[] = [];
 

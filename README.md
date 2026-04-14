@@ -35,6 +35,8 @@ localhost callback を使いたい場合は、Asana 側にも同じ redirect URI
 
 初回だけ `pnpm setup` も必要です。`pnpm link --global` で `ERR_PNPM_NO_GLOBAL_BIN_DIR` が出る場合は、shell 初期化ファイルに `PNPM_HOME` と PATH を追加してから、新しい shell を開き直してください。
 
+`pnpm link --global` 後の主コマンド名は `asn` です。
+
 ```bash
 pnpm setup
 # shell を開き直す
@@ -56,7 +58,7 @@ pnpm dev -- --help
 `auth url` / `auth login` の既定スコープは `users:read workspaces:read projects:read tasks:read` です。これは現在のCLI機能（`me`, `workspaces list`, `projects list`, `tasks list`）に必要な最小寄りのスコープです。
 
 ```bash
-asana-oauth auth url \
+asn auth url \
   --client-id "$ASANA_CLIENT_ID" \
   --redirect-uri urn:ietf:wg:oauth:2.0:oob
 ```
@@ -72,7 +74,7 @@ Asana Developer Console 側で、たとえば次の Redirect URL を登録しま
 そのうえで次を実行します。
 
 ```bash
-asana-oauth auth login \
+asn auth login \
   --client-id "$ASANA_CLIENT_ID" \
   --client-secret "$ASANA_CLIENT_SECRET" \
   --redirect-uri http://127.0.0.1:18787/callback
@@ -88,7 +90,7 @@ CLI が localhost で待ち受けを開始し、ブラウザで開くべき URL 
 ### 3. code を token に交換して保存する
 
 ```bash
-asana-oauth auth exchange \
+asn auth exchange \
   --client-id "$ASANA_CLIENT_ID" \
   --client-secret "$ASANA_CLIENT_SECRET" \
   --redirect-uri urn:ietf:wg:oauth:2.0:oob \
@@ -106,33 +108,33 @@ asana-oauth auth exchange \
 ### 4. ユーザー情報を確認する
 
 ```bash
-asana-oauth me
+asn me
 ```
 
 ### 5. workspace 一覧を取得する
 
 ```bash
-asana-oauth workspaces list
+asn workspaces list
 ```
 
 ### 6. project 一覧を取得する
 
 ```bash
-asana-oauth projects list --workspace "$ASANA_WORKSPACE_GID"
+asn projects list --workspace "$ASANA_WORKSPACE_GID"
 ```
 
-`asana-oauth project list ...` も後方互換の alias として使えます。
+`asn project list ...` も後方互換の alias として使えます。
 
 ### 7. task 一覧を取得する
 
 ```bash
-asana-oauth tasks list --project "$ASANA_PROJECT_GID"
+asn tasks list --project "$ASANA_PROJECT_GID"
 ```
 
 ### 8. token を更新する
 
 ```bash
-asana-oauth auth refresh --client-secret "$ASANA_CLIENT_SECRET"
+asn auth refresh --client-secret "$ASANA_CLIENT_SECRET"
 ```
 
 ## 開発
