@@ -13,6 +13,10 @@
 - `me` 保存済み access token で `GET /users/me`
 - `projects list` workspace 配下の project 一覧を `GET /projects?workspace=...` で取得 (`project list` は alias)
 - `tasks list` project 配下の task 一覧を `GET /projects/{project_gid}/tasks` で取得
+- `tasks get` 単一 task を `GET /tasks/{task_gid}` で取得
+- `tasks subtasks` task の subtask 一覧を `GET /tasks/{task_gid}/subtasks` で取得
+- `tasks stories` task の story (コメント/履歴) 一覧を `GET /tasks/{task_gid}/stories` で取得
+- `tasks attachments` task の添付ファイル一覧を `GET /tasks/{task_gid}/attachments` で取得
 - `workspaces list` 保存済み access token で `GET /workspaces`
 
 ## 前提
@@ -55,7 +59,7 @@ pnpm dev -- --help
 
 ### 1. 認可URLを作る
 
-`auth url` / `auth login` の既定スコープは `users:read workspaces:read projects:read tasks:read` です。これは現在のCLI機能（`me`, `workspaces list`, `projects list`, `tasks list`）に必要な最小寄りのスコープです。
+`auth url` / `auth login` の既定スコープは `users:read workspaces:read projects:read tasks:read stories:read attachments:read` です。これは現在のCLI機能に必要な最小寄りのスコープです。
 
 ```bash
 asn auth url \
@@ -131,7 +135,31 @@ asn projects list --workspace "$ASANA_WORKSPACE_GID"
 asn tasks list --project "$ASANA_PROJECT_GID"
 ```
 
-### 8. token を更新する
+### 8. task の詳細を取得する
+
+```bash
+asn tasks get --task "$ASANA_TASK_GID"
+```
+
+### 9. task の subtask 一覧を取得する
+
+```bash
+asn tasks subtasks --task "$ASANA_TASK_GID"
+```
+
+### 10. task の story (コメント/履歴) を取得する
+
+```bash
+asn tasks stories --task "$ASANA_TASK_GID"
+```
+
+### 11. task の添付ファイル一覧を取得する
+
+```bash
+asn tasks attachments --task "$ASANA_TASK_GID"
+```
+
+### 12. token を更新する
 
 ```bash
 asn auth refresh --client-secret "$ASANA_CLIENT_SECRET"
@@ -151,3 +179,4 @@ pnpm lint:types
 - OAuth token endpoint: `https://app.asana.com/-/oauth_token`
 - API base: `https://app.asana.com/api/1.0`
 - トークン保存時に `expires_at` を計算して JSON に書き込みます
+- 既定スコープ: `users:read workspaces:read projects:read tasks:read stories:read attachments:read`
