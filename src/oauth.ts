@@ -1,7 +1,7 @@
 import { randomBytes } from 'node:crypto';
 
 export const authorizationEndpoint = 'https://app.asana.com/-/oauth_authorize';
-export const defaultScopes = ['users:read', 'workspaces:read', 'projects:read'];
+export const defaultScopes = ['users:read', 'workspaces:read', 'projects:read', 'tasks:read'];
 export const defaultLocalhostRedirectUri = 'http://127.0.0.1:18787/callback';
 
 export type AuthorizationUrlOptions = {

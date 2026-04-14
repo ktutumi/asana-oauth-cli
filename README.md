@@ -12,6 +12,7 @@
 - `auth refresh` 保存済み refresh token で更新
 - `me` 保存済み access token で `GET /users/me`
 - `projects list` workspace 配下の project 一覧を `GET /projects?workspace=...` で取得 (`project list` は alias)
+- `tasks list` project 配下の task 一覧を `GET /projects/{project_gid}/tasks` で取得
 - `workspaces list` 保存済み access token で `GET /workspaces`
 
 ## 前提
@@ -32,7 +33,11 @@ localhost callback を使いたい場合は、Asana 側にも同じ redirect URI
 
 `pnpm` が未導入なら、先に `corepack enable` などで pnpm を使える状態にしてください。
 
+初回だけ `pnpm setup` も必要です。`pnpm link --global` で `ERR_PNPM_NO_GLOBAL_BIN_DIR` が出る場合は、shell 初期化ファイルに `PNPM_HOME` と PATH を追加してから、新しい shell を開き直してください。
+
 ```bash
+pnpm setup
+# shell を開き直す
 pnpm install
 pnpm build
 pnpm link --global
@@ -48,7 +53,7 @@ pnpm dev -- --help
 
 ### 1. 認可URLを作る
 
-`auth url` / `auth login` の既定スコープは `users:read workspaces:read projects:read` です。これは現在のCLI機能（`me`, `workspaces list`, `projects list`）に必要な最小寄りのスコープです。
+`auth url` / `auth login` の既定スコープは `users:read workspaces:read projects:read tasks:read` です。これは現在のCLI機能（`me`, `workspaces list`, `projects list`, `tasks list`）に必要な最小寄りのスコープです。
 
 ```bash
 asana-oauth auth url \
@@ -118,7 +123,13 @@ asana-oauth projects list --workspace "$ASANA_WORKSPACE_GID"
 
 `asana-oauth project list ...` も後方互換の alias として使えます。
 
-### 7. token を更新する
+### 7. task 一覧を取得する
+
+```bash
+asana-oauth tasks list --project "$ASANA_PROJECT_GID"
+```
+
+### 8. token を更新する
 
 ```bash
 asana-oauth auth refresh --client-secret "$ASANA_CLIENT_SECRET"

@@ -3,6 +3,7 @@ import {
   exchangeCodeForToken,
   fetchMe,
   listProjects,
+  listTasks,
   listWorkspaces,
   refreshAccessToken,
 } from '../src/asana-api.js';
@@ -166,5 +167,72 @@ describe('asana api', () => {
       { gid: '10', name: 'Roadmap' },
       { gid: '11', name: 'Backlog' },
     ]);
+  });
+
+  it('lists tasks for a project across paginated responses', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          data: [{ gid: '101', name: 'Ship pnpm migration' }],
+          next_page: { offset: 'next-1' },
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          data: [{ gid: '102', name: 'Review CI' }],
+          next_page: null,
+        }),
+      });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const tasks = await listTasks('access-1', 'project-1');
+
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      1,
+      'https://app.asana.com/api/1.0/projects/project-1/tasks',
+      expect.objectContaining({
+        headers: {
+          accept: 'application/json',
+          authorization: 'Bearer access-1',
+        },
+      }),
+    );
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      2,
+      'https://app.asana.com/api/1.0/projects/project-1/tasks?offset=next-1',
+      expect.objectContaining({
+        headers: {
+          accept: 'application/json',
+          authorization: 'Bearer access-1',
+        },
+      }),
+    );
+    expect(tasks).toEqual([
+      { gid: '101', name: 'Ship pnpm migration' },
+      { gid: '102', name: 'Review CI' },
+    ]);
+  });
+
+  it('encodes the project gid when listing tasks', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ data: [], next_page: null }),
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    await listTasks('access-1', 'project/with?special');
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://app.asana.com/api/1.0/projects/project%2Fwith%3Fspecial/tasks',
+      expect.objectContaining({
+        headers: {
+          accept: 'application/json',
+          authorization: 'Bearer access-1',
+        },
+      }),
+    );
   });
 });
