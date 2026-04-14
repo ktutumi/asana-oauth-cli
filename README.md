@@ -3,63 +3,63 @@
 [![CI](https://github.com/ktutumi/asana-oauth-cli/actions/workflows/ci.yml/badge.svg)](https://github.com/ktutumi/asana-oauth-cli/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/ktutumi/asana-oauth-cli)](https://github.com/ktutumi/asana-oauth-cli/releases/tag/v0.1.0)
 
-個人利用向けの軽量 Asana OAuth CLI です。
+A lightweight Asana OAuth CLI for personal use.
 
-対応コマンド:
-- `auth url` 認可URL生成
-- `auth exchange` authorization code を access token / refresh token に交換して保存
-- `auth login` localhost callback を自動受信して token 交換まで自動化
-- `auth refresh` 保存済み refresh token で更新
-- `me` 保存済み access token で `GET /users/me`
-- `projects list` workspace 配下の project 一覧を `GET /projects?workspace=...` で取得 (`project list` は alias)
-- `tasks list` project 配下の task 一覧を `GET /projects/{project_gid}/tasks` で取得
-- `tasks get` 単一 task を `GET /tasks/{task_gid}` で取得
-- `tasks subtasks` task の subtask 一覧を `GET /tasks/{task_gid}/subtasks` で取得
-- `tasks stories` task の story (コメント/履歴) 一覧を `GET /tasks/{task_gid}/stories` で取得
-- `tasks attachments` task の添付ファイル一覧を `GET /tasks/{task_gid}/attachments` で取得
-- `workspaces list` 保存済み access token で `GET /workspaces`
+Supported commands:
+- `auth url` — Generate an authorization URL
+- `auth exchange` — Exchange an authorization code for access/refresh tokens and save them
+- `auth login` — Auto-receive a localhost callback and automate token exchange
+- `auth refresh` — Refresh tokens using a saved refresh token
+- `me` — Call `GET /users/me` with a saved access token
+- `projects list` — List projects under a workspace via `GET /projects?workspace=...` (`project list` is an alias)
+- `tasks list` — List tasks under a project via `GET /projects/{project_gid}/tasks`
+- `tasks get` — Get a single task via `GET /tasks/{task_gid}`
+- `tasks subtasks` — List subtasks of a task via `GET /tasks/{task_gid}/subtasks`
+- `tasks stories` — List stories (comments/history) of a task via `GET /tasks/{task_gid}/stories`
+- `tasks attachments` — List attachments of a task via `GET /tasks/{task_gid}/attachments`
+- `workspaces list` — List workspaces via `GET /workspaces`
 
-## 前提
+## Prerequisites
 
 - Node.js 20+
-- Asana Developer Console で OAuth App を作成済み
+- An OAuth App created in the Asana Developer Console
 
-Asana OAuth App 作成時の設定例:
+Example Asana OAuth App settings:
 - `Redirect URL`: `urn:ietf:wg:oauth:2.0:oob`
 
-CLI用途ではこの OOB redirect URI が扱いやすいです。ブラウザで認可後、Asana が code を表示するので、それを CLI に貼り付けます。
+For CLI use, the OOB redirect URI is the simplest option. After authorizing in the browser, Asana displays the code, which you then paste into the CLI.
 
-localhost callback を使いたい場合は、Asana 側にも同じ redirect URI を登録してください。例:
+If you prefer localhost callback, register the same redirect URI on the Asana side. Examples:
 - `http://127.0.0.1:18787/callback`
 - `http://localhost:18787/callback`
 
-## インストール
+## Installation
 
-`pnpm` が未導入なら、先に `corepack enable` などで pnpm を使える状態にしてください。
+If `pnpm` is not available, enable it first with `corepack enable` or your preferred method.
 
-初回だけ `pnpm setup` も必要です。`pnpm link --global` で `ERR_PNPM_NO_GLOBAL_BIN_DIR` が出る場合は、shell 初期化ファイルに `PNPM_HOME` と PATH を追加してから、新しい shell を開き直してください。
+You also need to run `pnpm setup` once. If `pnpm link --global` shows `ERR_PNPM_NO_GLOBAL_BIN_DIR`, add `PNPM_HOME` and PATH to your shell initialization file, then open a new shell.
 
-`pnpm link --global` 後の主コマンド名は `asn` です。
+After `pnpm link --global`, the main command name is `asn`.
 
 ```bash
 pnpm setup
-# shell を開き直す
+# reopen your shell
 pnpm install
 pnpm build
 pnpm link --global
 ```
 
-またはビルドせずに開発実行:
+Or run in development mode without building:
 
 ```bash
 pnpm dev -- --help
 ```
 
-## 使い方
+## Usage
 
-### 1. 認可URLを作る
+### 1. Generate an authorization URL
 
-`auth url` / `auth login` の既定スコープは `users:read workspaces:read projects:read tasks:read stories:read attachments:read` です。これは現在のCLI機能に必要な最小寄りのスコープです。
+The default scope for `auth url` and `auth login` is `users:read workspaces:read projects:read tasks:read stories:read attachments:read`. This is the minimal set of scopes required by the current CLI features.
 
 ```bash
 asn auth url \
@@ -67,15 +67,15 @@ asn auth url \
   --redirect-uri urn:ietf:wg:oauth:2.0:oob
 ```
 
-出力された URL をブラウザで開き、表示された authorization code を控えます。
+Open the output URL in a browser, then note the displayed authorization code.
 
-### 2. localhost callback で自動ログインする
+### 2. Log in with localhost callback
 
-Asana Developer Console 側で、たとえば次の Redirect URL を登録します。
+Register a redirect URL such as the following in the Asana Developer Console:
 
 - `http://127.0.0.1:18787/callback`
 
-そのうえで次を実行します。
+Then run:
 
 ```bash
 asn auth login \
@@ -84,14 +84,14 @@ asn auth login \
   --redirect-uri http://127.0.0.1:18787/callback
 ```
 
-CLI が localhost で待ち受けを開始し、ブラウザで開くべき URL を表示します。Asana 認可後に callback が届くと、code を自動で受け取り、そのまま token 交換・保存まで行います。
+The CLI starts a localhost listener and displays the URL to open in a browser. Once Asana redirects back, it automatically receives the code and completes token exchange and storage.
 
-注意:
-- `auth login` は `http://localhost/...` または `http://127.0.0.1/...` のみ対応です
-- Redirect URL は Asana 側に完全一致で登録してください
-- 既定では 120 秒待機します。必要なら `--listen-timeout-ms 300000` のように延ばせます
+Notes:
+- `auth login` only accepts `http://localhost/...` or `http://127.0.0.1/...` redirect URIs
+- The redirect URL must exactly match what is registered on the Asana side
+- The default listen timeout is 120 seconds. Extend it with `--listen-timeout-ms 300000` if needed
 
-### 3. code を token に交換して保存する
+### 3. Exchange a code for tokens and save them
 
 ```bash
 asn auth exchange \
@@ -101,71 +101,71 @@ asn auth exchange \
   --code "$ASANA_CODE"
 ```
 
-保存先:
+Credentials are saved to:
 
 ```text
 ~/.config/asana-oauth-cli/credentials.json
 ```
 
-必要なら `--config /path/to/credentials.json` で変更できます。
+Override the path with `--config /path/to/credentials.json`.
 
-### 4. ユーザー情報を確認する
+### 4. Show user info
 
 ```bash
 asn me
 ```
 
-### 5. workspace 一覧を取得する
+### 5. List workspaces
 
 ```bash
 asn workspaces list
 ```
 
-### 6. project 一覧を取得する
+### 6. List projects
 
 ```bash
 asn projects list --workspace "$ASANA_WORKSPACE_GID"
 ```
 
-`asn project list ...` も後方互換の alias として使えます。
+`asn project list ...` also works as a backward-compatible alias.
 
-### 7. task 一覧を取得する
+### 7. List tasks
 
 ```bash
 asn tasks list --project "$ASANA_PROJECT_GID"
 ```
 
-### 8. task の詳細を取得する
+### 8. Get a task
 
 ```bash
 asn tasks get --task "$ASANA_TASK_GID"
 ```
 
-### 9. task の subtask 一覧を取得する
+### 9. List subtasks
 
 ```bash
 asn tasks subtasks --task "$ASANA_TASK_GID"
 ```
 
-### 10. task の story (コメント/履歴) を取得する
+### 10. List task stories (comments/history)
 
 ```bash
 asn tasks stories --task "$ASANA_TASK_GID"
 ```
 
-### 11. task の添付ファイル一覧を取得する
+### 11. List task attachments
 
 ```bash
 asn tasks attachments --task "$ASANA_TASK_GID"
 ```
 
-### 12. token を更新する
+### 12. Refresh tokens
 
 ```bash
 asn auth refresh --client-secret "$ASANA_CLIENT_SECRET"
 ```
 
-## 開発
+## Development
 
 ```bash
 pnpm test
@@ -173,10 +173,10 @@ pnpm build
 pnpm lint:types
 ```
 
-## 実装メモ
+## Implementation Notes
 
-- OAuth 認可URL: `https://app.asana.com/-/oauth_authorize`
+- OAuth authorization URL: `https://app.asana.com/-/oauth_authorize`
 - OAuth token endpoint: `https://app.asana.com/-/oauth_token`
-- API base: `https://app.asana.com/api/1.0`
-- トークン保存時に `expires_at` を計算して JSON に書き込みます
-- 既定スコープ: `users:read workspaces:read projects:read tasks:read stories:read attachments:read`
+- API base URL: `https://app.asana.com/api/1.0`
+- An `expires_at` timestamp is computed and stored alongside tokens
+- Default scope: `users:read workspaces:read projects:read tasks:read stories:read attachments:read`
