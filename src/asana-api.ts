@@ -59,6 +59,16 @@ export async function listWorkspaces(accessToken: string): Promise<Record<string
   return unwrapData(response);
 }
 
+export async function listProjects(accessToken: string, workspace: string): Promise<Record<string, unknown>[]> {
+  const response = await fetch(`${apiBase}/projects?workspace=${encodeURIComponent(workspace)}`, {
+    headers: {
+      accept: 'application/json',
+      authorization: `Bearer ${accessToken}`,
+    },
+  });
+  return unwrapData(response);
+}
+
 async function postToken(body: Array<[string, string]>, now: (() => Date) | undefined): Promise<TokenData> {
   const response = await fetch(oauthTokenEndpoint, {
     method: 'POST',

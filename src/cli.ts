@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { Command } from 'commander';
-import { exchangeCodeForToken, fetchMe, listWorkspaces, refreshAccessToken } from './asana-api.js';
+import { exchangeCodeForToken, fetchMe, listProjects, listWorkspaces, refreshAccessToken } from './asana-api.js';
 import { defaultConfigPath, loadConfig, saveConfig } from './config.js';
 import { buildAuthorizationUrl, defaultLocalhostRedirectUri, defaultScopes, generateState } from './oauth.js';
 import { waitForOAuthCallback } from './oauth-callback.js';
@@ -148,6 +148,17 @@ export async function runCli(argv: string[], io: CliIo = defaultIo): Promise<voi
       const accessToken = await requireAccessToken(program.opts().config as string);
       const me = await fetchMe(accessToken);
       io.stdout(JSON.stringify(me, null, 2));
+    });
+
+  const projects = program.command('project').description('project operations');
+  projects
+    .command('list')
+    .description('list projects in a workspace')
+    .requiredOption('--workspace <gid>', 'workspace gid')
+    .action(async (options) => {
+      const accessToken = await requireAccessToken(program.opts().config as string);
+      const items = await listProjects(accessToken, options.workspace);
+      io.stdout(JSON.stringify(items, null, 2));
     });
 
   const workspaces = program.command('workspaces').description('workspace operations');
