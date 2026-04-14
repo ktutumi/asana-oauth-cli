@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { runCli } from '../src/cli.js';
+import type { CliIo } from '../src/cli.js';
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -117,7 +118,7 @@ describe('cli', () => {
     expect(saved.token.refresh_token).toBe('refresh-1');
     expect(saved.token.token_type).toBe('bearer');
     expect(saved.token.expires_at).toMatch(/^\d{4}-\d{2}-\d{2}T/);
-    expect(urlLine).toContain('scope=users%3Aread%20workspaces%3Aread%20projects%3Aread%20tasks%3Aread');
+    expect(urlLine).toContain('scope=users%3Aread%20workspaces%3Aread%20projects%3Aread%20tasks%3Aread%20stories%3Aread%20attachments%3Aread');
     expect(stdout.some((line) => line.includes('"access_token": "***"'))).toBe(true);
   });
 
@@ -258,5 +259,105 @@ describe('cli', () => {
     });
 
     expect(stdout[0]).toContain('Ship pnpm migration');
+  });
+
+  it('fetches a single task with tasks get', async () => {
+    const stdout: string[] = [];
+    const configDir = mkdtempSync(join(tmpdir(), 'asana-oauth-cli-cli-'));
+    const configPath = join(configDir, 'credentials.json');
+
+    writeFileSync(configPath, JSON.stringify({
+      clientId: 'client-1',
+      redirectUri: 'http://127.0.0.1:18787/callback',
+      token: { access_token: 'access-1', refresh_token: 'refresh-1', token_type: 'bearer' },
+    }));
+
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ data: { gid: '12345', name: 'Buy groceries' } }),
+    }));
+
+    await runCli(['--config', configPath, 'tasks', 'get', '--task', '12345'], {
+      stdout: (line) => stdout.push(line),
+      stderr: vi.fn(),
+      exit: (code) => { throw new Error(`unexpected exit ${code}`); },
+    });
+
+    expect(stdout[0]).toContain('Buy groceries');
+  });
+
+  it('lists subtasks for a task with tasks subtasks', async () => {
+    const stdout: string[] = [];
+    const configDir = mkdtempSync(join(tmpdir(), 'asana-oauth-cli-cli-'));
+    const configPath = join(configDir, 'credentials.json');
+
+    writeFileSync(configPath, JSON.stringify({
+      clientId: 'client-1',
+      redirectUri: 'http://127.0.0.1:18787/callback',
+      token: { access_token: 'access-1', refresh_token: 'refresh-1', token_type: 'bearer' },
+    }));
+
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ data: [{ gid: '201', name: 'Subtask A' }], next_page: null }),
+    }));
+
+    await runCli(['--config', configPath, 'tasks', 'subtasks', '--task', '12345'], {
+      stdout: (line) => stdout.push(line),
+      stderr: vi.fn(),
+      exit: (code) => { throw new Error(`unexpected exit ${code}`); },
+    });
+
+    expect(stdout[0]).toContain('Subtask A');
+  });
+
+  it('lists stories for a task with tasks stories', async () => {
+    const stdout: string[] = [];
+    const configDir = mkdtempSync(join(tmpdir(), 'asana-oauth-cli-cli-'));
+    const configPath = join(configDir, 'credentials.json');
+
+    writeFileSync(configPath, JSON.stringify({
+      clientId: 'client-1',
+      redirectUri: 'http://127.0.0.1:18787/callback',
+      token: { access_token: 'access-1', refresh_token: 'refresh-1', token_type: 'bearer' },
+    }));
+
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ data: [{ gid: '301', type: 'comment', text: 'Looks good' }], next_page: null }),
+    }));
+
+    await runCli(['--config', configPath, 'tasks', 'stories', '--task', '12345'], {
+      stdout: (line) => stdout.push(line),
+      stderr: vi.fn(),
+      exit: (code) => { throw new Error(`unexpected exit ${code}`); },
+    });
+
+    expect(stdout[0]).toContain('Looks good');
+  });
+
+  it('lists attachments for a task with tasks attachments', async () => {
+    const stdout: string[] = [];
+    const configDir = mkdtempSync(join(tmpdir(), 'asana-oauth-cli-cli-'));
+    const configPath = join(configDir, 'credentials.json');
+
+    writeFileSync(configPath, JSON.stringify({
+      clientId: 'client-1',
+      redirectUri: 'http://127.0.0.1:18787/callback',
+      token: { access_token: 'access-1', refresh_token: 'refresh-1', token_type: 'bearer' },
+    }));
+
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ data: [{ gid: '401', name: 'screenshot.png' }], next_page: null }),
+    }));
+
+    await runCli(['--config', configPath, 'tasks', 'attachments', '--task', '12345'], {
+      stdout: (line) => stdout.push(line),
+      stderr: vi.fn(),
+      exit: (code) => { throw new Error(`unexpected exit ${code}`); },
+    });
+
+    expect(stdout[0]).toContain('screenshot.png');
   });
 });

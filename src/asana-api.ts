@@ -114,6 +114,97 @@ export async function listTasks(accessToken: string, project: string): Promise<R
   }
 }
 
+export async function getTask(accessToken: string, taskGid: string): Promise<Record<string, unknown>> {
+  const response = await fetch(`${apiBase}/tasks/${encodeURIComponent(taskGid)}`, {
+    headers: {
+      accept: 'application/json',
+      authorization: `Bearer ${accessToken}`,
+    },
+  });
+  return unwrapData(response);
+}
+
+export async function listSubtasks(accessToken: string, taskGid: string): Promise<Record<string, unknown>[]> {
+  const items: Record<string, unknown>[] = [];
+  const url = new URL(`${apiBase}/tasks/${encodeURIComponent(taskGid)}/subtasks`);
+
+  while (true) {
+    const response = await fetch(url.toString(), {
+      headers: {
+        accept: 'application/json',
+        authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    const payload = await parseJson<{
+      data: Record<string, unknown>[];
+      next_page?: { offset?: string } | null;
+    }>(response);
+    items.push(...payload.data);
+
+    const offset = payload.next_page?.offset;
+    if (!offset) {
+      return items;
+    }
+
+    url.searchParams.set('offset', offset);
+  }
+}
+
+export async function listStories(accessToken: string, taskGid: string): Promise<Record<string, unknown>[]> {
+  const items: Record<string, unknown>[] = [];
+  const url = new URL(`${apiBase}/tasks/${encodeURIComponent(taskGid)}/stories`);
+
+  while (true) {
+    const response = await fetch(url.toString(), {
+      headers: {
+        accept: 'application/json',
+        authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    const payload = await parseJson<{
+      data: Record<string, unknown>[];
+      next_page?: { offset?: string } | null;
+    }>(response);
+    items.push(...payload.data);
+
+    const offset = payload.next_page?.offset;
+    if (!offset) {
+      return items;
+    }
+
+    url.searchParams.set('offset', offset);
+  }
+}
+
+export async function listAttachments(accessToken: string, taskGid: string): Promise<Record<string, unknown>[]> {
+  const items: Record<string, unknown>[] = [];
+  const url = new URL(`${apiBase}/tasks/${encodeURIComponent(taskGid)}/attachments`);
+
+  while (true) {
+    const response = await fetch(url.toString(), {
+      headers: {
+        accept: 'application/json',
+        authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    const payload = await parseJson<{
+      data: Record<string, unknown>[];
+      next_page?: { offset?: string } | null;
+    }>(response);
+    items.push(...payload.data);
+
+    const offset = payload.next_page?.offset;
+    if (!offset) {
+      return items;
+    }
+
+    url.searchParams.set('offset', offset);
+  }
+}
+
 async function postToken(body: Array<[string, string]>, now: (() => Date) | undefined): Promise<TokenData> {
   const response = await fetch(oauthTokenEndpoint, {
     method: 'POST',

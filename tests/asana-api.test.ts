@@ -2,7 +2,11 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   exchangeCodeForToken,
   fetchMe,
+  getTask,
+  listAttachments,
   listProjects,
+  listStories,
+  listSubtasks,
   listTasks,
   listWorkspaces,
   refreshAccessToken,
@@ -213,6 +217,148 @@ describe('asana api', () => {
     expect(tasks).toEqual([
       { gid: '101', name: 'Ship pnpm migration' },
       { gid: '102', name: 'Review CI' },
+    ]);
+  });
+
+  it('fetches a single task by gid', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ data: { gid: '12345', name: 'Buy groceries' } }),
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const task = await getTask('access-1', '12345');
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://app.asana.com/api/1.0/tasks/12345',
+      expect.objectContaining({
+        headers: {
+          accept: 'application/json',
+          authorization: 'Bearer access-1',
+        },
+      }),
+    );
+    expect(task).toEqual({ gid: '12345', name: 'Buy groceries' });
+  });
+
+  it('lists subtasks for a task across paginated responses', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          data: [{ gid: '201', name: 'Subtask A' }],
+          next_page: { offset: 'next-1' },
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          data: [{ gid: '202', name: 'Subtask B' }],
+          next_page: null,
+        }),
+      });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const subtasks = await listSubtasks('access-1', '12345');
+
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      1,
+      'https://app.asana.com/api/1.0/tasks/12345/subtasks',
+      expect.objectContaining({
+        headers: {
+          accept: 'application/json',
+          authorization: 'Bearer access-1',
+        },
+      }),
+    );
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      2,
+      'https://app.asana.com/api/1.0/tasks/12345/subtasks?offset=next-1',
+      expect.objectContaining({
+        headers: {
+          accept: 'application/json',
+          authorization: 'Bearer access-1',
+        },
+      }),
+    );
+    expect(subtasks).toEqual([
+      { gid: '201', name: 'Subtask A' },
+      { gid: '202', name: 'Subtask B' },
+    ]);
+  });
+
+  it('lists stories for a task across paginated responses', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          data: [{ gid: '301', type: 'comment', text: 'Looks good' }],
+          next_page: { offset: 'next-1' },
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          data: [{ gid: '302', type: 'system', text: 'Assigned to Alice' }],
+          next_page: null,
+        }),
+      });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const stories = await listStories('access-1', '12345');
+
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      1,
+      'https://app.asana.com/api/1.0/tasks/12345/stories',
+      expect.objectContaining({
+        headers: {
+          accept: 'application/json',
+          authorization: 'Bearer access-1',
+        },
+      }),
+    );
+    expect(stories).toEqual([
+      { gid: '301', type: 'comment', text: 'Looks good' },
+      { gid: '302', type: 'system', text: 'Assigned to Alice' },
+    ]);
+  });
+
+  it('lists attachments for a task across paginated responses', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          data: [{ gid: '401', name: 'screenshot.png' }],
+          next_page: { offset: 'next-1' },
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          data: [{ gid: '402', name: 'design.pdf' }],
+          next_page: null,
+        }),
+      });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const attachments = await listAttachments('access-1', '12345');
+
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      1,
+      'https://app.asana.com/api/1.0/tasks/12345/attachments',
+      expect.objectContaining({
+        headers: {
+          accept: 'application/json',
+          authorization: 'Bearer access-1',
+        },
+      }),
+    );
+    expect(attachments).toEqual([
+      { gid: '401', name: 'screenshot.png' },
+      { gid: '402', name: 'design.pdf' },
     ]);
   });
 
