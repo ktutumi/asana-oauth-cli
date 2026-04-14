@@ -99,7 +99,7 @@ describe('cli', () => {
     expect(saved.token.refresh_token).toBe('refresh-1');
     expect(saved.token.token_type).toBe('bearer');
     expect(saved.token.expires_at).toMatch(/^\d{4}-\d{2}-\d{2}T/);
-    expect(urlLine).toContain('scope=users%3Aread%20workspaces%3Aread%20projects%3Aread');
+    expect(urlLine).toContain('scope=users%3Aread%20workspaces%3Aread%20projects%3Aread%20tasks%3Aread');
     expect(stdout.some((line) => line.includes('"access_token": "***"'))).toBe(true);
   });
 
@@ -209,5 +209,36 @@ describe('cli', () => {
     });
 
     expect(stdout[0]).toContain('Roadmap');
+  });
+
+  it('lists tasks for a project with tasks list', async () => {
+    const stdout: string[] = [];
+    const configDir = mkdtempSync(join(tmpdir(), 'asana-oauth-cli-cli-'));
+    const configPath = join(configDir, 'credentials.json');
+
+    writeFileSync(configPath, JSON.stringify({
+      clientId: 'client-1',
+      redirectUri: 'http://127.0.0.1:18787/callback',
+      token: {
+        access_token: 'access-1',
+        refresh_token: 'refresh-1',
+        token_type: 'bearer',
+      },
+    }));
+
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ data: [{ gid: '101', name: 'Ship pnpm migration' }], next_page: null }),
+    }));
+
+    await runCli(['--config', configPath, 'tasks', 'list', '--project', 'project-1'], {
+      stdout: (line) => stdout.push(line),
+      stderr: vi.fn(),
+      exit: (code) => {
+        throw new Error(`unexpected exit ${code}`);
+      },
+    });
+
+    expect(stdout[0]).toContain('Ship pnpm migration');
   });
 });

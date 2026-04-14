@@ -87,6 +87,33 @@ export async function listProjects(accessToken: string, workspace: string): Prom
   }
 }
 
+export async function listTasks(accessToken: string, project: string): Promise<Record<string, unknown>[]> {
+  const items: Record<string, unknown>[] = [];
+  const url = new URL(`${apiBase}/projects/${encodeURIComponent(project)}/tasks`);
+
+  while (true) {
+    const response = await fetch(url.toString(), {
+      headers: {
+        accept: 'application/json',
+        authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    const payload = await parseJson<{
+      data: Record<string, unknown>[];
+      next_page?: { offset?: string } | null;
+    }>(response);
+    items.push(...payload.data);
+
+    const offset = payload.next_page?.offset;
+    if (!offset) {
+      return items;
+    }
+
+    url.searchParams.set('offset', offset);
+  }
+}
+
 async function postToken(body: Array<[string, string]>, now: (() => Date) | undefined): Promise<TokenData> {
   const response = await fetch(oauthTokenEndpoint, {
     method: 'POST',
