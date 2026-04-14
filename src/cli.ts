@@ -21,7 +21,7 @@ const defaultIo: CliIo = {
 
 export async function runCli(argv: string[], io: CliIo = defaultIo): Promise<void> {
   const program = new Command();
-  program.name('asana-oauth');
+  program.name('asn');
   program.description('Lightweight Asana OAuth CLI');
   program.showHelpAfterError();
 
@@ -183,7 +183,7 @@ export async function runCli(argv: string[], io: CliIo = defaultIo): Promise<voi
     });
 
   try {
-    await program.parseAsync(['node', 'asana-oauth', ...argv]);
+    await program.parseAsync(['node', 'asn', ...argv]);
   } catch (error) {
     io.stderr(error instanceof Error ? error.message : String(error));
     io.exit(1);
