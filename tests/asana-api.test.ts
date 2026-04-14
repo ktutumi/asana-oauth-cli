@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   exchangeCodeForToken,
   fetchMe,
+  listProjects,
   listWorkspaces,
   refreshAccessToken,
 } from '../src/asana-api.js';
@@ -118,5 +119,52 @@ describe('asana api', () => {
     const workspaces = await listWorkspaces('access-1');
 
     expect(workspaces).toEqual([{ gid: '1', name: 'Personal' }]);
+  });
+
+  it('lists projects for the authenticated user workspace across paginated responses', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          data: [{ gid: '10', name: 'Roadmap' }],
+          next_page: { offset: 'next-1' },
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          data: [{ gid: '11', name: 'Backlog' }],
+          next_page: null,
+        }),
+      });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const projects = await listProjects('access-1', 'workspace-1');
+
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      1,
+      'https://app.asana.com/api/1.0/projects?workspace=workspace-1',
+      expect.objectContaining({
+        headers: {
+          accept: 'application/json',
+          authorization: 'Bearer access-1',
+        },
+      }),
+    );
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      2,
+      'https://app.asana.com/api/1.0/projects?workspace=workspace-1&offset=next-1',
+      expect.objectContaining({
+        headers: {
+          accept: 'application/json',
+          authorization: 'Bearer access-1',
+        },
+      }),
+    );
+    expect(projects).toEqual([
+      { gid: '10', name: 'Roadmap' },
+      { gid: '11', name: 'Backlog' },
+    ]);
   });
 });

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { Command } from 'commander';
-import { exchangeCodeForToken, fetchMe, listWorkspaces, refreshAccessToken } from './asana-api.js';
+import { exchangeCodeForToken, fetchMe, listProjects, listWorkspaces, refreshAccessToken } from './asana-api.js';
 import { defaultConfigPath, loadConfig, saveConfig } from './config.js';
 import { buildAuthorizationUrl, defaultLocalhostRedirectUri, defaultScopes, generateState } from './oauth.js';
 import { waitForOAuthCallback } from './oauth-callback.js';
@@ -150,6 +150,17 @@ export async function runCli(argv: string[], io: CliIo = defaultIo): Promise<voi
       io.stdout(JSON.stringify(me, null, 2));
     });
 
+  registerProjectListCommand(program.command('projects').description('project operations'), async (workspace) => {
+    const accessToken = await requireAccessToken(program.opts().config as string);
+    const items = await listProjects(accessToken, workspace);
+    io.stdout(JSON.stringify(items, null, 2));
+  });
+  registerProjectListCommand(program.command('project').description('alias for projects'), async (workspace) => {
+    const accessToken = await requireAccessToken(program.opts().config as string);
+    const items = await listProjects(accessToken, workspace);
+    io.stdout(JSON.stringify(items, null, 2));
+  });
+
   const workspaces = program.command('workspaces').description('workspace operations');
   workspaces
     .command('list')
@@ -174,6 +185,19 @@ async function requireAccessToken(configPath: string): Promise<string> {
     throw new Error('No access token saved. Run `auth exchange` first.');
   }
   return config.token.access_token;
+}
+
+function registerProjectListCommand(
+  command: Command,
+  action: (workspace: string) => Promise<void>,
+): void {
+  command
+    .command('list')
+    .description('list projects in a workspace')
+    .requiredOption('--workspace <gid>', 'workspace gid')
+    .action(async (options: { workspace: string }) => {
+      await action(options.workspace);
+    });
 }
 
 function redactToken(token: TokenData): TokenData {
