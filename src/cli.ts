@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { Command } from 'commander';
-import { exchangeCodeForToken, fetchMe, listProjects, listTasks, listWorkspaces, refreshAccessToken } from './asana-api.js';
+import { exchangeCodeForToken, fetchMe, getTask, listAttachments, listProjects, listStories, listSubtasks, listTasks, listWorkspaces, refreshAccessToken } from './asana-api.js';
 import { defaultConfigPath, loadConfig, saveConfig } from './config.js';
 import { buildAuthorizationUrl, defaultLocalhostRedirectUri, defaultScopes, generateState } from './oauth.js';
 import { waitForOAuthCallback } from './oauth-callback.js';
@@ -169,6 +169,46 @@ export async function runCli(argv: string[], io: CliIo = defaultIo): Promise<voi
     .action(async (options: { project: string }) => {
       const accessToken = await requireAccessToken(program.opts().config as string);
       const items = await listTasks(accessToken, options.project);
+      io.stdout(JSON.stringify(items, null, 2));
+    });
+
+  tasks
+    .command('get')
+    .description('show a single task')
+    .requiredOption('--task <gid>', 'task gid')
+    .action(async (options: { task: string }) => {
+      const accessToken = await requireAccessToken(program.opts().config as string);
+      const result = await getTask(accessToken, options.task);
+      io.stdout(JSON.stringify(result, null, 2));
+    });
+
+  tasks
+    .command('subtasks')
+    .description('list subtasks of a task')
+    .requiredOption('--task <gid>', 'task gid')
+    .action(async (options: { task: string }) => {
+      const accessToken = await requireAccessToken(program.opts().config as string);
+      const items = await listSubtasks(accessToken, options.task);
+      io.stdout(JSON.stringify(items, null, 2));
+    });
+
+  tasks
+    .command('stories')
+    .description('list stories (comments and history) of a task')
+    .requiredOption('--task <gid>', 'task gid')
+    .action(async (options: { task: string }) => {
+      const accessToken = await requireAccessToken(program.opts().config as string);
+      const items = await listStories(accessToken, options.task);
+      io.stdout(JSON.stringify(items, null, 2));
+    });
+
+  tasks
+    .command('attachments')
+    .description('list attachments of a task')
+    .requiredOption('--task <gid>', 'task gid')
+    .action(async (options: { task: string }) => {
+      const accessToken = await requireAccessToken(program.opts().config as string);
+      const items = await listAttachments(accessToken, options.task);
       io.stdout(JSON.stringify(items, null, 2));
     });
 
