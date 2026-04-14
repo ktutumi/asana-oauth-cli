@@ -5,9 +5,9 @@
 - List the key changes made.
 
 ## Test Plan
-- [ ] `npm test`
-- [ ] `npm run build`
-- [ ] `npm run lint:types`
+- [ ] `pnpm test`
+- [ ] `pnpm build`
+- [ ] `pnpm lint:types`
 
 ## Checklist
 - [ ] CI is green

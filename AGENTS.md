@@ -30,7 +30,7 @@ asana-oauth-cli/
 | OAuth 系のテスト | `tests/oauth*.test.ts` | URL 生成と callback 待受 |
 | API/設定のテスト | `tests/asana-api.test.ts`, `tests/config.test.ts` | fetch stub と一時ファイル中心 |
 | 実装方針の参照 | `docs/plans/2026-04-14-asana-oauth-cli.md` | test-first を明記 |
-| CI 条件 | `.github/workflows/ci.yml` | `npm test` → `build` → `lint:types` |
+| CI 条件 | `.github/workflows/ci.yml` | `pnpm test` → `build` → `lint:types` |
 
 ## CODE MAP
 | Symbol | Type | Location | Refs | Role |
@@ -46,8 +46,8 @@ asana-oauth-cli/
 ## CONVENTIONS
 - 入口は `package.json` の `bin` だが、実装の起点は `src/cli.ts`。
 - `tsconfig.json` は `src/**/*.ts` だけでなく `tests/**/*.ts` も compile 対象。
-- Lint 専用ツールはなく、品質ゲートは `npm run lint:types` (`tsc --noEmit`)。
-- CI と PR テンプレは `npm test` / `npm run build` / `npm run lint:types` を必須扱い。
+- Lint 専用ツールはなく、品質ゲートは `pnpm lint:types` (`tsc --noEmit`)。
+- CI と PR テンプレは `pnpm test` / `pnpm build` / `pnpm lint:types` を必須扱い。
 - ESM + `NodeNext`。import は `.js` 拡張子前提。
 
 ## ANTI-PATTERNS (THIS PROJECT)
@@ -63,10 +63,10 @@ asana-oauth-cli/
 
 ## COMMANDS
 ```bash
-npm test
-npm run build
-npm run lint:types
-npm run dev -- --help
+pnpm test
+pnpm build
+pnpm lint:types
+pnpm dev -- --help
 ```
 
 ## SUBDIR GUIDE

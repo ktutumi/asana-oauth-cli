@@ -30,16 +30,18 @@ localhost callback を使いたい場合は、Asana 側にも同じ redirect URI
 
 ## インストール
 
+`pnpm` が未導入なら、先に `corepack enable` などで pnpm を使える状態にしてください。
+
 ```bash
-npm install
-npm run build
-npm link
+pnpm install
+pnpm build
+pnpm link --global
 ```
 
 またはビルドせずに開発実行:
 
 ```bash
-node --import tsx src/cli.ts --help
+pnpm dev -- --help
 ```
 
 ## 使い方
@@ -125,9 +127,9 @@ asana-oauth auth refresh --client-secret "$ASANA_CLIENT_SECRET"
 ## 開発
 
 ```bash
-npm test
-npm run build
-npm run lint:types
+pnpm test
+pnpm build
+pnpm lint:types
 ```
 
 ## 実装メモ

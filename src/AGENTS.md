@@ -43,9 +43,9 @@ src/
 
 ## CHECKS
 ```bash
-npm test
-npm run build
-npm run lint:types
+pnpm test
+pnpm build
+pnpm lint:types
 ```
 
 ## NOTES

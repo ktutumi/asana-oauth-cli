@@ -36,7 +36,7 @@ tests/
 
 ## CHECKS
 ```bash
-npm test
+pnpm test
 ```
 
 ## NOTES
