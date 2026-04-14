@@ -150,10 +150,21 @@ export async function runCli(argv: string[], io: CliIo = defaultIo): Promise<voi
       io.stdout(JSON.stringify(me, null, 2));
     });
 
-  const projects = program.command('project').description('project operations');
+  const projects = program.command('projects').description('project operations');
   projects
     .command('list')
     .description('list projects in a workspace')
+    .requiredOption('--workspace <gid>', 'workspace gid')
+    .action(async (options) => {
+      const accessToken = await requireAccessToken(program.opts().config as string);
+      const items = await listProjects(accessToken, options.workspace);
+      io.stdout(JSON.stringify(items, null, 2));
+    });
+
+  const projectAlias = program.command('project').description('alias for projects');
+  projectAlias
+    .command('list')
+    .description('alias for projects list')
     .requiredOption('--workspace <gid>', 'workspace gid')
     .action(async (options) => {
       const accessToken = await requireAccessToken(program.opts().config as string);

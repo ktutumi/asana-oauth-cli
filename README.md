@@ -11,7 +11,7 @@
 - `auth login` localhost callback を自動受信して token 交換まで自動化
 - `auth refresh` 保存済み refresh token で更新
 - `me` 保存済み access token で `GET /users/me`
-- `project list` workspace 配下の project 一覧を `GET /projects?workspace=...` で取得
+- `projects list` workspace 配下の project 一覧を `GET /projects?workspace=...` で取得 (`project list` は alias)
 - `workspaces list` 保存済み access token で `GET /workspaces`
 
 ## 前提
@@ -46,7 +46,7 @@ node --import tsx src/cli.ts --help
 
 ### 1. 認可URLを作る
 
-`auth url` / `auth login` の既定スコープは `users:read workspaces:read projects:read` です。これは現在のCLI機能（`me`, `workspaces list`, `project list`）に必要な最小寄りのスコープです。
+`auth url` / `auth login` の既定スコープは `users:read workspaces:read projects:read` です。これは現在のCLI機能（`me`, `workspaces list`, `projects list`）に必要な最小寄りのスコープです。
 
 ```bash
 asana-oauth auth url \
@@ -111,8 +111,10 @@ asana-oauth workspaces list
 ### 6. project 一覧を取得する
 
 ```bash
-asana-oauth project list --workspace "$ASANA_WORKSPACE_GID"
+asana-oauth projects list --workspace "$ASANA_WORKSPACE_GID"
 ```
+
+`asana-oauth project list ...` も後方互換の alias として使えます。
 
 ### 7. token を更新する
 

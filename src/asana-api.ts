@@ -60,13 +60,31 @@ export async function listWorkspaces(accessToken: string): Promise<Record<string
 }
 
 export async function listProjects(accessToken: string, workspace: string): Promise<Record<string, unknown>[]> {
-  const response = await fetch(`${apiBase}/projects?workspace=${encodeURIComponent(workspace)}`, {
-    headers: {
-      accept: 'application/json',
-      authorization: `Bearer ${accessToken}`,
-    },
-  });
-  return unwrapData(response);
+  const items: Record<string, unknown>[] = [];
+  const url = new URL(`${apiBase}/projects`);
+  url.searchParams.set('workspace', workspace);
+
+  while (true) {
+    const response = await fetch(url.toString(), {
+      headers: {
+        accept: 'application/json',
+        authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    const payload = await parseJson<{
+      data: Record<string, unknown>[];
+      next_page?: { offset?: string } | null;
+    }>(response);
+    items.push(...payload.data);
+
+    const offset = payload.next_page?.offset;
+    if (!offset) {
+      return items;
+    }
+
+    url.searchParams.set('offset', offset);
+  }
 }
 
 async function postToken(body: Array<[string, string]>, now: (() => Date) | undefined): Promise<TokenData> {

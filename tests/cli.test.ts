@@ -149,7 +149,7 @@ describe('cli', () => {
     expect(stderr).toContain('OAuth state mismatch');
   });
 
-  it('lists projects for a workspace with project list', async () => {
+  it('lists projects for a workspace with projects list', async () => {
     const stdout: string[] = [];
     const configDir = mkdtempSync(join(tmpdir(), 'asana-oauth-cli-cli-'));
     const configPath = join(configDir, 'credentials.json');
@@ -166,7 +166,38 @@ describe('cli', () => {
 
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
       ok: true,
-      json: async () => ({ data: [{ gid: '10', name: 'Roadmap' }] }),
+      json: async () => ({ data: [{ gid: '10', name: 'Roadmap' }], next_page: null }),
+    }));
+
+    await runCli(['--config', configPath, 'projects', 'list', '--workspace', 'workspace-1'], {
+      stdout: (line) => stdout.push(line),
+      stderr: vi.fn(),
+      exit: (code) => {
+        throw new Error(`unexpected exit ${code}`);
+      },
+    });
+
+    expect(stdout[0]).toContain('Roadmap');
+  });
+
+  it('supports project as an alias for projects', async () => {
+    const stdout: string[] = [];
+    const configDir = mkdtempSync(join(tmpdir(), 'asana-oauth-cli-cli-'));
+    const configPath = join(configDir, 'credentials.json');
+
+    writeFileSync(configPath, JSON.stringify({
+      clientId: 'client-1',
+      redirectUri: 'http://127.0.0.1:18787/callback',
+      token: {
+        access_token: 'access-1',
+        refresh_token: 'refresh-1',
+        token_type: 'bearer',
+      },
+    }));
+
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ data: [{ gid: '10', name: 'Roadmap' }], next_page: null }),
     }));
 
     await runCli(['--config', configPath, 'project', 'list', '--workspace', 'workspace-1'], {
