@@ -118,7 +118,7 @@ describe('cli', () => {
     expect(saved.token.refresh_token).toBe('refresh-1');
     expect(saved.token.token_type).toBe('bearer');
     expect(saved.token.expires_at).toMatch(/^\d{4}-\d{2}-\d{2}T/);
-    expect(urlLine).toContain('scope=users%3Aread%20workspaces%3Aread%20projects%3Aread%20tasks%3Aread');
+    expect(urlLine).toContain('scope=users%3Aread%20workspaces%3Aread%20projects%3Aread%20tasks%3Aread%20stories%3Aread%20attachments%3Aread');
     expect(stdout.some((line) => line.includes('"access_token": "***"'))).toBe(true);
   });
 

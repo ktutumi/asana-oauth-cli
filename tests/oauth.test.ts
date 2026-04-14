@@ -22,7 +22,7 @@ describe('oauth helpers', () => {
   });
 
   it('exposes conservative explicit default scopes for current commands', () => {
-    expect(defaultScopes).toEqual(['users:read', 'workspaces:read', 'projects:read', 'tasks:read']);
+    expect(defaultScopes).toEqual(['users:read', 'workspaces:read', 'projects:read', 'tasks:read', 'stories:read', 'attachments:read']);
   });
 
   it('uses a non-8787 localhost redirect URI default for auto login', () => {
